@@ -17,7 +17,6 @@ import javax.annotation.Nullable;
 
 @SynchronizedEntityVariable.SynchronizedPhysicsModule(modid = BasicsAddon.ID)
 public class InteractionKeyModule implements IPhysicsModule<AbstractEntityPhysicsHandler<?, ?>>, IPhysicsModule.IEntityUpdateListener {
-    private final BaseVehicleEntity<?> entity;
     private InteractionKeyController controller;
 
     @SynchronizedEntityVariable(name = "activate")
@@ -25,7 +24,6 @@ public class InteractionKeyModule implements IPhysicsModule<AbstractEntityPhysic
 
 
     public InteractionKeyModule(BaseVehicleEntity<?> entity) {
-        this.entity = entity;
         if (entity.world.isRemote) {
             controller = new InteractionKeyController(entity, this);
         }

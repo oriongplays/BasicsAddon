@@ -156,44 +156,49 @@ public class BasicsAddonModule implements IPhysicsModule<AbstractEntityPhysicsHa
         state.set(turnSignalRightOn ? state.get() | 128 : state.get() & ~128);
     }
 
-    private byte serializeState() {
-        byte vars = 0;
+    private int serializeState() {
+        int vars = 0;
         if (isSirenOn())
-            vars = (byte) (vars | 2);
+            vars = vars | 2;
         if (isHeadLightsOn())
-            vars = (byte) (vars | 4);
+            vars = vars | 4;
         if (isTurnSignalLeftOn())
-            vars = (byte) (vars | 8);
+            vars = vars | 8;
         if (isTurnSignalRightOn())
-            vars = (byte) (vars | 16);
+            vars = vars | 16;
         if (isBeaconsOn())
-            vars = (byte) (vars | 32);
+            vars = vars | 32;
         if (isLocked())
-            vars = (byte) (vars | 64);
+            vars = vars | 64;
+        if(hasLinkedKey())
+            vars = vars | 128;
         if (isDRLOn())
-            vars = (byte) (vars | 256);
+            vars = vars | 256;
 
         return vars;
     }
 
-    private void deserializeState(byte vars) {
+    private void deserializeState(int vars) {
         setSirenOn((vars & 2) == 2);
         setHeadLightsOn((vars & 4) == 4);
         setTurnSignalLeftOn((vars & 8) == 8);
         setTurnSignalRightOn((vars & 16) == 16);
         setBeaconsOn((vars & 32) == 32);
         setLocked((vars & 64) == 64);
+        setHasLinkedKey((vars & 128) == 128);
         setDRLOn((vars & 256) == 256);
     }
 
     @Override
     public void writeToNBT(NBTTagCompound tag) {
-        tag.setByte("BasAddon.vals", serializeState());
+        tag.setInteger("BasAddon.vals", serializeState());
     }
 
     @Override
     public void readFromNBT(NBTTagCompound tag) {
-        if (tag.hasKey("BasAddon.vals", Constants.NBT.TAG_BYTE)) {
+        if (tag.hasKey("BasAddon.vals", Constants.NBT.TAG_INT)) {
+            deserializeState(tag.getInteger("BasAddon.vals"));
+        } else if (tag.hasKey("BasAddon.vals", Constants.NBT.TAG_BYTE)) { //backward compatibility
             deserializeState(tag.getByte("BasAddon.vals"));
         } else { //backward compatibility
             setHasLinkedKey(tag.getBoolean("BasAdd.haskey"));
@@ -203,11 +208,11 @@ public class BasicsAddonModule implements IPhysicsModule<AbstractEntityPhysicsHa
 
     @Override
     public void writeSpawnData(ByteBuf buffer) {
-        buffer.writeByte(serializeState());
+        buffer.writeInt(serializeState());
     }
 
     @Override
     public void readSpawnData(ByteBuf additionalData) {
-        deserializeState(additionalData.readByte());
+        deserializeState(additionalData.readInt());
     }
 }
